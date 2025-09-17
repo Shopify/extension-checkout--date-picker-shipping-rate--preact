@@ -1,5 +1,8 @@
 import '@shopify/ui-extensions/preact';
 import {render} from "preact";
+import { useState } from "preact/hooks";
+import { useMemo } from "preact/hooks";
+import { useCallback } from "preact/hooks";
 
 // 1. Export the extension
 export default function() {
@@ -7,40 +10,46 @@ export default function() {
 }
 
 function Extension() {
-  // 2. Check instructions for feature availability, see https://shopify.dev/docs/api/checkout-ui-extensions/apis/cart-instructions for details
-  if (!shopify.instructions.value.attributes.canUpdateAttributes) {
-    // For checkouts such as draft order invoices, cart attributes may not be allowed
-    // Consider rendering a fallback UI or nothing at all, if the feature is unavailable
-    return (
-      <s-banner heading="example-date-picker" tone="warning">
-        {shopify.i18n.translate("attributeChangesAreNotSupported")}
-      </s-banner>
-    );
-  }
+  const [selectedDate, setSelectedDate] = useState("");
+  const [yesterday, setYesterday] = useState("");
 
-  // 3. Render a UI
+  // Sets the selected date to today, unless today is Sunday, then it sets it to tomorrow
+  useMemo(() => {
+    let today = new Date();
+
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+
+    const deliveryDate = today.getDay() === 0 ? tomorrow : today;
+
+    setSelectedDate(formatDate(deliveryDate));
+    setYesterday(formatDate(yesterday));
+  }, []);
+
+  // Set a function to handle the Date Picker component's onChange event
+  const handleChangeDate = useCallback((event) => {
+    setSelectedDate(event.target.value);
+  }, []);
+
   return (
-    <s-banner heading="example-date-picker">
-      <s-stack gap="base">
-        <s-text>
-          {shopify.i18n.translate("welcome", {
-            target: <s-text type="emphasis">{shopify.extension.target}</s-text>,
-          })}
-        </s-text>
-        <s-button onClick={handleClick}>
-          {shopify.i18n.translate("addAFreeGiftToMyOrder")}
-        </s-button>
-      </s-stack>
-    </s-banner>
-  );
-
-  async function handleClick() {
-    // 4. Call the API to modify checkout
-    const result = await shopify.applyAttributeChange({
-      key: "requestedFreeGift",
-      type: "updateAttribute",
-      value: "yes",
-    });
-    console.log("applyAttributeChange result", result);
-  }
+    <>
+      <s-heading>Select a date for delivery</s-heading>
+      <s-date-picker
+        value={selectedDate}
+        onChange={handleChangeDate}
+        disallow={`--${yesterday}`}
+        disallowDays="sunday"
+      />
+    </>
+  )
 }
+
+const formatDate = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
