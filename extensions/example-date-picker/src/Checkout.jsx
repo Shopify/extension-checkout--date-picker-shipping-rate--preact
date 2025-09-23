@@ -84,15 +84,19 @@ function Extension() {
   };
 
   return (isExpressSelected() ? (
+    // [START date-picker.render-date-picker]
     <>
       <s-heading>Select a date for delivery</s-heading>
       <s-date-picker
         value={selectedDate}
         onChange={handleChangeDate}
+        // [START date-picker.constraint-dates]
         disallow={`--${yesterday}`}
         disallowDays="sunday"
+        // [END date-picker.constraint-dates]
       />
     </>
+    // [END date-picker.render-date-picker]
   ) : null);
   // [END date-picker.render-express-selected]
 }
