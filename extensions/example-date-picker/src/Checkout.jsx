@@ -1,12 +1,6 @@
 import '@shopify/ui-extensions/preact';
 import {render} from "preact";
 import { useState, useCallback, useMemo } from "preact/hooks";
- import {
-   useApplyMetafieldsChange,
-   useDeliveryGroupListTarget,
-   useApi,
-} from "@shopify/ui-extensions/checkout/preact";
-
 
 // 1. Export the extension
 export default function() {
@@ -18,14 +12,16 @@ function Extension() {
   const [yesterday, setYesterday] = useState("");
 
   // Set a function to handle updating a metafield
-  const applyMetafieldsChange = useApplyMetafieldsChange();
+  const { applyMetafieldChange } = shopify;
 
-  // Get the delivery group list
-  const deliveryGroupList = useDeliveryGroupListTarget();
+  // [START date-picker.delivery-group-list]
+  const deliveryGroupList = shopify.target.value;
+  // [END date-picker.delivery-group-list]
 
-  // Define the metafield namespace and key
+  // [START date-picker.metafield-definition]
   const metafieldNamespace = "yourAppNamespace";
   const metafieldKey = "deliverySchedule";
+  // [END date-picker.metafield-definition]
 
   // Sets the selected date to today, unless today is Sunday, then it sets it to tomorrow
   useMemo(() => {
@@ -43,30 +39,35 @@ function Extension() {
     setYesterday(formatDate(yesterday));
   }, []);
 
-  // Set a function to handle the Date Picker component's onChange event
+  // [START date-picker.metafield-change]
   const handleChangeDate = useCallback((event) => {
     const selectedDate = event.target.value;
     setSelectedDate(selectedDate);
 
-    // Apply the change to the metafield
-    applyMetafieldsChange({
-      type: selectedDate ? "updateMetafield" : "removeMetafield",
+    applyMetafieldChange({
+      type: "updateMetafield",
       namespace: metafieldNamespace,
       key: metafieldKey,
       valueType: "string",
       value: selectedDate,
     });
   }, []);
+  // [END date-picker.metafield-change]
 
-  // Guard against duplicate rendering of `shipping-option-list.render-after` target for one-time purchase and subscription sections. Calling `applyMetafieldsChange()` on the same namespace-key pair from duplicated extensions would otherwise cause an overwrite of the metafield value.
-  // Instead of guarding, another approach would be to prefix the metafield key when calling `applyMetafieldsChange()`. The `deliveryGroupList`'s `groupType` could be used to such effect.
+  // [START date-picker.delivery-group-list]
+  /* Guard against duplicate rendering of `shipping-option-list.render-after` target for one-time purchase and subscription sections.
+   * Calling `applyMetafieldChange()` on the same namespace-key pair from duplicated extensions would otherwise cause an overwrite of the metafield value.
+   * Instead of guarding, another approach would be to prefix the metafield key when calling `applyMetafieldChange()`.
+   * The Delivery Group List's (shopify.target.value) `groupType` could be used to such effect.
+   */
   if (!deliveryGroupList || deliveryGroupList.groupType !== 'oneTimePurchase') {
     return null;
   }
+  // [END date-picker.delivery-group-list]
 
   const { deliveryGroups } = deliveryGroupList;
 
-  // Function to compute if Express is selected in any of the delivery groups
+  // [START date-picker.render-express-selected]
   let isExpressSelected = () => {
     const expressHandles = new Set(
       deliveryGroups
@@ -92,6 +93,7 @@ function Extension() {
       />
     </>
   ) : null);
+  // [END date-picker.render-express-selected]
 }
 
 const formatDate = (date) => {
