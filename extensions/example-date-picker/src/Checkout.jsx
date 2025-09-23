@@ -15,10 +15,6 @@ function Extension() {
   // Set a function to handle updating a metafield
   const { applyMetafieldChange } = shopify;
 
-  // [START date-picker.delivery-group-list]
-  const deliveryGroupList = shopify.target.value;
-  // [END date-picker.delivery-group-list]
-
   // [START date-picker.metafield-definition]
   const metafieldNamespace = "yourAppNamespace";
   const metafieldKey = "deliverySchedule";
@@ -56,6 +52,8 @@ function Extension() {
   // [END date-picker.metafield-change]
 
   // [START date-picker.delivery-group-list]
+  const deliveryGroupList = shopify.target.value;
+
   /* Guard against duplicate rendering of `shipping-option-list.render-after` target for one-time purchase and subscription sections.
    * Calling `applyMetafieldChange()` on the same namespace-key pair from duplicated extensions would otherwise cause an overwrite of the metafield value.
    * Instead of guarding, another approach would be to prefix the metafield key when calling `applyMetafieldChange()`.
@@ -64,11 +62,9 @@ function Extension() {
   if (!deliveryGroupList || deliveryGroupList.groupType !== 'oneTimePurchase') {
     return null;
   }
-  // [END date-picker.delivery-group-list]
 
   const { deliveryGroups } = deliveryGroupList;
 
-  // [START date-picker.render-express-selected]
   let isExpressSelected = () => {
     const expressHandles = new Set(
       deliveryGroups
@@ -98,7 +94,7 @@ function Extension() {
     </>
     // [END date-picker.render-date-picker]
   ) : null);
-  // [END date-picker.render-express-selected]
+  // [END date-picker.delivery-group-list]
 }
 
 const formatDate = (date) => {
