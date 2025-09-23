@@ -2,10 +2,11 @@ import '@shopify/ui-extensions/preact';
 import {render} from "preact";
 import { useState, useCallback, useMemo } from "preact/hooks";
 
-// 1. Export the extension
+// [START date-picker.ext-index]
 export default function() {
   render(<Extension />, document.body)
 }
+// [END date-picker.ext-index]
 
 function Extension() {
   const [selectedDate, setSelectedDate] = useState("");
